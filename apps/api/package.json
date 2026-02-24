@@ -1,0 +1,45 @@
+{
+  "name": "@repo/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "pnpm run build && node dist/server.js",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
+    "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:e2e:research": "vitest run test/e2e/research-team.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:coding": "vitest run test/e2e/coding-team.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:content": "vitest run test/e2e/content-team.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:data": "vitest run test/e2e/data-team.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:checkpoint": "vitest run test/e2e/checkpoint-resume.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:tools": "vitest run test/e2e/tool-approval.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:models": "vitest run test/e2e/model-diversity.e2e.test.ts --config vitest.e2e.config.ts",
+    "test:e2e:recovery": "vitest run test/e2e/error-recovery.e2e.test.ts --config vitest.e2e.config.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@fastify/sensible": "^6.0.3",
+    "@fastify/websocket": "^11.2.0",
+    "@repo/a2a-gateway": "workspace:*",
+    "@repo/agent-core": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/model-router": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "@repo/security": "workspace:*",
+    "@repo/skills-engine": "workspace:*",
+    "@repo/tool-broker": "workspace:*",
+    "@repo/types": "workspace:*",
+    "fastify": "^5.2.1",
+    "ws": "^8.18.3",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

@@ -1,0 +1,74 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: multi-agent-platform
+
+commonLabels:
+  app.kubernetes.io/part-of: multi-agent-platform
+  app.kubernetes.io/managed-by: kustomize
+
+commonAnnotations:
+  platform.multi-agent/version: "1.0.0"
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Configuration
+  - configmap.yaml
+  - secrets.yaml
+
+  # PostgreSQL
+  - postgres/postgres-pvc.yaml
+  - postgres/postgres-statefulset.yaml
+  - postgres/postgres-service.yaml
+
+  # Redis
+  - redis/redis-pvc.yaml
+  - redis/redis-statefulset.yaml
+  - redis/redis-service.yaml
+
+  # LiteLLM
+  - litellm/litellm-configmap.yaml
+  - litellm/litellm-deployment.yaml
+  - litellm/litellm-service.yaml
+
+  # API
+  - api/api-deployment.yaml
+  - api/api-service.yaml
+  - api/api-hpa.yaml
+
+  # Workers
+  - workers/workers-deployment.yaml
+  - workers/workers-hpa.yaml
+
+  # Web
+  - web/web-deployment.yaml
+  - web/web-service.yaml
+  - web/web-hpa.yaml
+
+  # Ingress & TLS
+  - ingress.yaml
+  - cert-manager.yaml
+
+  # Security
+  - network-policy.yaml
+  - pod-security.yaml
+
+  # Monitoring
+  - monitoring/prometheus-config.yaml
+  - monitoring/servicemonitor.yaml
+  - monitoring/grafana-dashboards.yaml
+
+# Configure image pull policy
+images:
+  - name: ghcr.io/multi-agent-platform/api
+    newTag: latest
+  - name: ghcr.io/multi-agent-platform/web
+    newTag: latest
+
+# Resource name prefix (optional)
+# namePrefix: prod-
+
+# Resource name suffix (optional)
+# nameSuffix: -v1

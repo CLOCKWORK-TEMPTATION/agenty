@@ -1,0 +1,30 @@
+apiVersion: v2
+name: multi-agent-platform
+description: A Helm chart for Multi-Agent Teams Platform - Production-ready multi-agent orchestration
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - multi-agent
+  - langgraph
+  - litellm
+  - agents
+maintainers:
+  - name: Multi-Agent Platform Team
+    email: team@multi-agent-platform.example.com
+home: https://github.com/multi-agent-platform/platform
+sources:
+  - https://github.com/multi-agent-platform/platform
+icon: https://multi-agent-platform.example.com/icon.png
+
+# Dependencies can be added here if needed
+# dependencies:
+#   - name: postgresql
+#     version: "12.x.x"
+#     repository: "https://charts.bitnami.com/bitnami"
+#     condition: postgresql.enabled
+#   - name: redis
+#     version: "17.x.x"
+#     repository: "https://charts.bitnami.com/bitnami"
+#     condition: redis.enabled

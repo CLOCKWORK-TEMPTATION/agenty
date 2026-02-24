@@ -1,0 +1,154 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: multi-agent-platform-dev
+
+namePrefix: dev-
+
+bases:
+  - ../../base
+
+commonLabels:
+  environment: development
+
+commonAnnotations:
+  platform.multi-agent/environment: dev
+
+# Override ConfigMap values for dev
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - TRACING_SAMPLE_RATE=1.0
+      - METRICS_ENABLED=true
+
+# Override image tags
+images:
+  - name: ghcr.io/multi-agent-platform/api
+    newTag: dev-latest
+  - name: ghcr.io/multi-agent-platform/web
+    newTag: dev-latest
+
+# Patch replicas for dev (lower resources)
+patches:
+  # API - 1 replica in dev
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Workers - 1 replica in dev
+  - target:
+      kind: Deployment
+      name: workers
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Web - 1 replica in dev
+  - target:
+      kind: Deployment
+      name: web
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # LiteLLM - 1 replica in dev
+  - target:
+      kind: Deployment
+      name: litellm
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # API HPA - lower limits in dev
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: api-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 3
+
+  # Workers HPA - lower limits in dev
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: workers-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
+
+  # Web HPA - lower limits in dev
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: web-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 3
+
+  # Reduce storage in dev
+  - target:
+      kind: PersistentVolumeClaim
+      name: postgres-pvc
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 10Gi
+
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-pvc
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 2Gi
+
+  # Update Ingress hosts for dev
+  - target:
+      kind: Ingress
+      name: main-ingress
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts
+        value:
+          - dev.multi-agent-platform.example.com
+          - dev-api.multi-agent-platform.example.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: dev.multi-agent-platform.example.com
+      - op: replace
+        path: /spec/rules/1/host
+        value: dev-api.multi-agent-platform.example.com
+
+  # Use staging Let's Encrypt in dev
+  - target:
+      kind: Certificate
+      name: platform-tls-cert
+    patch: |-
+      - op: replace
+        path: /spec/issuerRef/name
+        value: letsencrypt-staging
+      - op: replace
+        path: /spec/dnsNames
+        value:
+          - dev.multi-agent-platform.example.com
+          - dev-api.multi-agent-platform.example.com

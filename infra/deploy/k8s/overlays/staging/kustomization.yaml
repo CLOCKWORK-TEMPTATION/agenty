@@ -1,0 +1,151 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: multi-agent-platform-staging
+
+namePrefix: staging-
+
+bases:
+  - ../../base
+
+commonLabels:
+  environment: staging
+
+commonAnnotations:
+  platform.multi-agent/environment: staging
+
+# Override ConfigMap values for staging
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals:
+      - NODE_ENV=staging
+      - LOG_LEVEL=info
+      - TRACING_SAMPLE_RATE=0.5
+      - METRICS_ENABLED=true
+
+# Override image tags
+images:
+  - name: ghcr.io/multi-agent-platform/api
+    newTag: staging-latest
+  - name: ghcr.io/multi-agent-platform/web
+    newTag: staging-latest
+
+# Patch replicas for staging (medium resources)
+patches:
+  # API - 2 replicas in staging
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+
+  # Workers - 2 replicas in staging
+  - target:
+      kind: Deployment
+      name: workers
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+
+  # Web - 2 replicas in staging
+  - target:
+      kind: Deployment
+      name: web
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+
+  # LiteLLM - 2 replicas in staging
+  - target:
+      kind: Deployment
+      name: litellm
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+
+  # API HPA - medium limits in staging
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: api-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+  # Workers HPA - medium limits in staging
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: workers-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 10
+
+  # Web HPA - medium limits in staging
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: web-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+  # Medium storage in staging
+  - target:
+      kind: PersistentVolumeClaim
+      name: postgres-pvc
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 30Gi
+
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-pvc
+    patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 5Gi
+
+  # Update Ingress hosts for staging
+  - target:
+      kind: Ingress
+      name: main-ingress
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts
+        value:
+          - staging.multi-agent-platform.example.com
+          - staging-api.multi-agent-platform.example.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.multi-agent-platform.example.com
+      - op: replace
+        path: /spec/rules/1/host
+        value: staging-api.multi-agent-platform.example.com
+
+  # Use production Let's Encrypt in staging
+  - target:
+      kind: Certificate
+      name: platform-tls-cert
+    patch: |-
+      - op: replace
+        path: /spec/dnsNames
+        value:
+          - staging.multi-agent-platform.example.com
+          - staging-api.multi-agent-platform.example.com

@@ -1,0 +1,81 @@
+groups:
+  - name: runs_alerts
+    interval: 30s
+    rules:
+      # High run failure rate
+      - alert: HighRunFailureRate
+        expr: |
+          (sum(rate(run_status_total{status="failed"}[10m])) / sum(rate(run_status_total[10m]))) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          component: runs
+        annotations:
+          summary: "High run failure rate"
+          description: "Run failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          runbook_url: "https://docs.example.com/runbooks/high-run-failure-rate"
+
+      # Long-running tasks
+      - alert: LongRunningTasks
+        expr: |
+          histogram_quantile(0.95, sum(rate(run_duration_seconds_bucket[10m])) by (le)) > 300
+        for: 15m
+        labels:
+          severity: warning
+          component: runs
+        annotations:
+          summary: "Long-running tasks detected"
+          description: "P95 run duration is {{ $value }}s (threshold: 300s)"
+          runbook_url: "https://docs.example.com/runbooks/long-running-tasks"
+
+      # Stuck runs
+      - alert: StuckRuns
+        expr: |
+          sum(run_status_total{status="running"}) > 100
+        for: 30m
+        labels:
+          severity: warning
+          component: runs
+        annotations:
+          summary: "Many runs stuck in running state"
+          description: "{{ $value }} runs have been running for more than 30 minutes"
+          runbook_url: "https://docs.example.com/runbooks/stuck-runs"
+
+      # Revision loop max reached frequently
+      - alert: FrequentRevisionLoopMax
+        expr: |
+          sum(rate(run_status_total{status="max_revisions_reached"}[10m])) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+          component: runs
+        annotations:
+          summary: "Frequent revision loop max reached"
+          description: "{{ $value }} runs per second are hitting max revision loops"
+          runbook_url: "https://docs.example.com/runbooks/revision-loop-max"
+
+      # Model diversity violation
+      - alert: ModelDiversityViolation
+        expr: |
+          count(count(model_requests_total) by (model)) < 2
+        for: 10m
+        labels:
+          severity: warning
+          component: runs
+        annotations:
+          summary: "Model diversity requirement violated"
+          description: "Less than 2 different models are being used (current: {{ $value }})"
+          runbook_url: "https://docs.example.com/runbooks/model-diversity-violation"
+
+      # No runs being executed
+      - alert: NoRunsExecuted
+        expr: |
+          sum(rate(run_status_total[5m])) == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: runs
+        annotations:
+          summary: "No runs being executed"
+          description: "No runs have been executed in the last 15 minutes"
+          runbook_url: "https://docs.example.com/runbooks/no-runs-executed"

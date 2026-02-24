@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-agent-platform.fullname" . }}-config
+  labels:
+    {{- include "multi-agent-platform.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  LITELLM_API_BASE: {{ .Values.config.litellmApiBase | quote }}
+  # Add other non-sensitive configurations here
+  {{- range $key, $value := .Values.extraEnvVars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

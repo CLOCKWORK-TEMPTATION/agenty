@@ -1,0 +1,107 @@
+groups:
+  - name: resources_alerts
+    interval: 30s
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          process_cpu_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+          runbook_url: "https://docs.example.com/runbooks/high-cpu-usage"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: |
+          process_cpu_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: resources
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/critical-cpu-usage"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (process_memory_usage_bytes{type="heap_used"} / process_memory_usage_bytes{type="heap_total"}) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+          runbook_url: "https://docs.example.com/runbooks/high-memory-usage"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          (process_memory_usage_bytes{type="heap_used"} / process_memory_usage_bytes{type="heap_total"}) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: resources
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/critical-memory-usage"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (system_memory_bytes{type="used"} / system_memory_bytes{type="total"}) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+          runbook_url: "https://docs.example.com/runbooks/disk-space-low"
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: |
+          (system_memory_bytes{type="used"} / system_memory_bytes{type="total"}) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: resources
+        annotations:
+          summary: "Disk space critically low"
+          description: "Disk usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/disk-space-critical"
+
+      # Database connections exhausted
+      - alert: DatabaseConnectionsExhausted
+        expr: |
+          db_connection_pool{state="idle"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "No idle database connections available"
+          runbook_url: "https://docs.example.com/runbooks/database-connections-exhausted"
+
+      # High system load
+      - alert: HighSystemLoad
+        expr: |
+          system_load_average{period="5m"} > 4
+        for: 10m
+        labels:
+          severity: warning
+          component: resources
+        annotations:
+          summary: "High system load average"
+          description: "5-minute load average is {{ $value }} (threshold: 4)"
+          runbook_url: "https://docs.example.com/runbooks/high-system-load"

@@ -1,0 +1,31 @@
+# Secrets
+secrets-local.yaml
+*.secret.yaml
+*.sealed.yaml
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Helm
+*.tgz
+helm/*/charts/
+helm/*/Chart.lock
+
+# Kustomize
+kustomization-local.yaml
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

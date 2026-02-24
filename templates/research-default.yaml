@@ -1,0 +1,15 @@
+id: research-default
+name: Research Team
+version: 1.0.0
+description: Research + Validation
+domains:
+  - research
+roles:
+  - id: researcher
+    name: Researcher
+    objective: Collect high-quality sources
+    requiredCapabilities: [tool-calling]
+  - id: validator
+    name: Validator
+    objective: Verify evidence and claims
+    requiredCapabilities: [tool-calling]

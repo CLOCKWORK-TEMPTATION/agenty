@@ -1,0 +1,2 @@
+e\:\\New folder (25)\\infra\\deploy:
+helm  k8s  README.md  scripts  STRUCTURE.txt

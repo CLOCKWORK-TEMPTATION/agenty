@@ -1,0 +1,107 @@
+groups:
+  - name: queues_alerts
+    interval: 30s
+    rules:
+      # High queue depth
+      - alert: HighQueueDepth
+        expr: |
+          queue_jobs{state="waiting"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: queues
+        annotations:
+          summary: "High queue depth"
+          description: "{{ $value }} jobs waiting in queue (threshold: 100)"
+          runbook_url: "https://docs.example.com/runbooks/high-queue-depth"
+
+      # Critical queue depth
+      - alert: CriticalQueueDepth
+        expr: |
+          queue_jobs{state="waiting"} > 500
+        for: 5m
+        labels:
+          severity: critical
+          component: queues
+        annotations:
+          summary: "Critical queue depth"
+          description: "{{ $value }} jobs waiting in queue (threshold: 500)"
+          runbook_url: "https://docs.example.com/runbooks/critical-queue-depth"
+
+      # Job processing slow
+      - alert: JobProcessingSlow
+        expr: |
+          sum(rate(job_processing_total{status="completed"}[5m])) < 1
+        for: 15m
+        labels:
+          severity: warning
+          component: queues
+        annotations:
+          summary: "Job processing is slow"
+          description: "Only {{ $value }} jobs per second being processed (threshold: 1/s)"
+          runbook_url: "https://docs.example.com/runbooks/job-processing-slow"
+
+      # High job failure rate
+      - alert: HighJobFailureRate
+        expr: |
+          (sum(rate(job_processing_total{status="failed"}[10m])) / sum(rate(job_processing_total[10m]))) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          component: queues
+        annotations:
+          summary: "High job failure rate"
+          description: "Job failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          runbook_url: "https://docs.example.com/runbooks/high-job-failure-rate"
+
+      # Worker utilization low
+      - alert: LowWorkerUtilization
+        expr: |
+          worker_utilization < 0.3
+        for: 20m
+        labels:
+          severity: info
+          component: queues
+        annotations:
+          summary: "Low worker utilization"
+          description: "Worker utilization is {{ $value | humanizePercentage }} (threshold: 30%)"
+          runbook_url: "https://docs.example.com/runbooks/low-worker-utilization"
+
+      # Worker utilization high
+      - alert: HighWorkerUtilization
+        expr: |
+          worker_utilization > 0.9
+        for: 15m
+        labels:
+          severity: warning
+          component: queues
+        annotations:
+          summary: "High worker utilization"
+          description: "Worker utilization is {{ $value | humanizePercentage }} (threshold: 90%)"
+          runbook_url: "https://docs.example.com/runbooks/high-worker-utilization"
+
+      # Failed jobs accumulating
+      - alert: FailedJobsAccumulating
+        expr: |
+          queue_jobs{state="failed"} > 50
+        for: 15m
+        labels:
+          severity: warning
+          component: queues
+        annotations:
+          summary: "Failed jobs accumulating"
+          description: "{{ $value }} failed jobs in queue (threshold: 50)"
+          runbook_url: "https://docs.example.com/runbooks/failed-jobs-accumulating"
+
+      # Delayed jobs accumulating
+      - alert: DelayedJobsAccumulating
+        expr: |
+          queue_jobs{state="delayed"} > 100
+        for: 20m
+        labels:
+          severity: info
+          component: queues
+        annotations:
+          summary: "Delayed jobs accumulating"
+          description: "{{ $value }} delayed jobs in queue (threshold: 100)"
+          runbook_url: "https://docs.example.com/runbooks/delayed-jobs-accumulating"

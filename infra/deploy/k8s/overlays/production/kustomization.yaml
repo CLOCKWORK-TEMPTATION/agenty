@@ -1,0 +1,125 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: multi-agent-platform
+
+# No prefix in production
+
+bases:
+  - ../../base
+
+commonLabels:
+  environment: production
+
+commonAnnotations:
+  platform.multi-agent/environment: production
+
+# Override ConfigMap values for production
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - TRACING_SAMPLE_RATE=0.1
+      - METRICS_ENABLED=true
+
+# Override image tags - use versioned tags in production
+images:
+  - name: ghcr.io/multi-agent-platform/api
+    newTag: v1.0.0  # Replace with actual version
+  - name: ghcr.io/multi-agent-platform/web
+    newTag: v1.0.0  # Replace with actual version
+
+# No patches needed for production - using base values
+# Base already has:
+# - API: 3 replicas, HPA 3-10
+# - Workers: 3 replicas, HPA 3-20
+# - Web: 3 replicas, HPA 3-10
+# - LiteLLM: 3 replicas
+# - Postgres: 50Gi
+# - Redis: 10Gi
+
+# Additional production-specific resources
+resources:
+  - pod-disruption-budget.yaml
+  - priority-class.yaml
+
+# Production-specific patches
+patches:
+  # Enable pod anti-affinity for high availability
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - api
+                  topologyKey: kubernetes.io/hostname
+
+  - target:
+      kind: Deployment
+      name: workers
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - workers
+                  topologyKey: kubernetes.io/hostname
+
+  - target:
+      kind: Deployment
+      name: web
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - web
+                  topologyKey: kubernetes.io/hostname
+
+  - target:
+      kind: Deployment
+      name: litellm
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - litellm
+                  topologyKey: kubernetes.io/hostname

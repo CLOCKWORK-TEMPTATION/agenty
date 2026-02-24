@@ -1,0 +1,51 @@
+=================================================================
+Integration Tests - قائمة الملفات المنشأة
+=================================================================
+
+1. INTEGRATION TEST FILES (10 files)
+   ----------------------------------
+   ✓ packages/tool-broker/test/integration/mcp-e2e.test.ts (16K)
+   ✓ packages/db/test/integration/postgres.test.ts (12K)
+   ✓ packages/db/test/integration/pgvector.test.ts (13K)
+   ✓ packages/db/test/integration/migrations.test.ts (12K)
+   ✓ packages/db/test/integration/transactions.test.ts (15K)
+   ✓ packages/db/test/integration/checkpoints.test.ts (13K)
+   ✓ packages/db/test/integration/redis.test.ts (13K)
+   ✓ packages/security/test/integration/rbac-e2e.test.ts (3.5K)
+   ✓ packages/model-router/test/integration/litellm-e2e.test.ts (2K)
+   ✓ apps/api/test/integration/team-draft-flow.test.ts (3K)
+
+2. CONFIGURATION FILES (2 files)
+   ------------------------------
+   ✓ vitest.config.integration.ts
+   ✓ test/integration-setup.ts
+
+3. ENVIRONMENT & DOCUMENTATION (4 files)
+   --------------------------------------
+   ✓ .env.test
+   ✓ test/README.md
+   ✓ RUN_INTEGRATION_TESTS.md
+   ✓ INTEGRATION_TESTS_SUMMARY.md
+
+4. PACKAGE.json UPDATES
+   --------------------
+   ✓ Added scripts:
+     - test:integration
+     - test:integration:watch
+   ✓ Added dependencies:
+     - pg
+     - @types/pg
+     - redis
+
+=================================================================
+TOTAL: 16 files created/modified
+TOTAL TEST CASES: 120+ integration tests
+=================================================================
+
+NEXT STEPS:
+1. Start Docker: docker compose up postgres redis litellm -d
+2. Install deps: pnpm install
+3. Run tests: pnpm run test:integration
+
+For detailed instructions, see: RUN_INTEGRATION_TESTS.md
+For complete summary, see: INTEGRATION_TESTS_SUMMARY.md

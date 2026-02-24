@@ -1,0 +1,54 @@
+# Requires Prometheus Operator to be installed
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-servicemonitor
+  namespace: multi-agent-platform
+  labels:
+    app.kubernetes.io/name: api
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+      app.kubernetes.io/component: backend
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: workers-servicemonitor
+  namespace: multi-agent-platform
+  labels:
+    app.kubernetes.io/name: workers
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: workers
+      app.kubernetes.io/component: worker
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: litellm-servicemonitor
+  namespace: multi-agent-platform
+  labels:
+    app.kubernetes.io/name: litellm
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: litellm
+      app.kubernetes.io/component: proxy
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics

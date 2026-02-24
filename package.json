@@ -1,0 +1,40 @@
+{
+  "name": "multi-model-agent-teams-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build --concurrency=1",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck --concurrency=1",
+    "test": "turbo run test --concurrency=1",
+    "test:integration": "vitest run --config vitest.config.integration.ts",
+    "test:integration:watch": "vitest --config vitest.config.integration.ts",
+    "test:e2e": "pnpm --filter @repo/api run test:e2e",
+    "test:security": "pnpm --filter @repo/security run test",
+    "format": "prettier --write .",
+    "db:migrate": "pnpm --filter @repo/db run migrate",
+    "db:seed": "pnpm --filter @repo/db run seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.17.19",
+    "@types/pg": "^8.15.5",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "pg": "^8.13.3",
+    "prettier": "^3.5.1",
+    "redis": "^4.7.0",
+    "turbo": "^2.4.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.8"
+  }
+}

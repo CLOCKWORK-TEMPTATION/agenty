@@ -1,0 +1,166 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: multi-agent-platform
+  labels:
+    grafana_dashboard: "1"
+data:
+  platform-overview.json: |
+    {
+      "dashboard": {
+        "title": "Multi-Agent Platform Overview",
+        "tags": ["platform", "overview"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "API Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"api\"}[5m])"
+              }
+            ]
+          },
+          {
+            "title": "API Response Time (p95)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"api\"}[5m]))"
+              }
+            ]
+          },
+          {
+            "title": "Worker Queue Depth",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "bullmq_queue_waiting{job=\"workers\"}"
+              }
+            ]
+          },
+          {
+            "title": "LiteLLM Request Rate by Model",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(litellm_requests_total[5m])"
+              }
+            ]
+          },
+          {
+            "title": "Database Connection Pool",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "pg_pool_size{job=\"api\"}"
+              }
+            ]
+          },
+          {
+            "title": "Redis Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "redis_memory_used_bytes"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  langgraph-metrics.json: |
+    {
+      "dashboard": {
+        "title": "LangGraph Execution Metrics",
+        "tags": ["langgraph", "agents"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Graph Execution Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(langgraph_executions_total[5m])"
+              }
+            ]
+          },
+          {
+            "title": "Node Execution Duration",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(langgraph_node_duration_seconds_bucket[5m]))"
+              }
+            ]
+          },
+          {
+            "title": "Revision Loops",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "langgraph_revision_loops_total"
+              }
+            ]
+          },
+          {
+            "title": "Verifier Pass Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(langgraph_verifier_passed_total[5m]) / rate(langgraph_verifier_total[5m])"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  model-performance.json: |
+    {
+      "dashboard": {
+        "title": "Model Performance & Selection",
+        "tags": ["models", "ai"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Model Selection Distribution",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum by (model) (rate(model_requests_total[5m]))"
+              }
+            ]
+          },
+          {
+            "title": "Model Response Time by Provider",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(model_response_duration_seconds_bucket[5m]))"
+              }
+            ]
+          },
+          {
+            "title": "Model Quality Score",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "model_quality_score"
+              }
+            ]
+          },
+          {
+            "title": "Tool Execution Success Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(tool_executions_success_total[5m]) / rate(tool_executions_total[5m])"
+              }
+            ]
+          }
+        ]
+      }
+    }

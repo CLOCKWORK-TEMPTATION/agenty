@@ -1,0 +1,68 @@
+groups:
+  - name: cache_alerts
+    interval: 30s
+    rules:
+      # Low cache hit rate
+      - alert: LowCacheHitRate
+        expr: |
+          cache_hit_rate < 0.5
+        for: 15m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+          runbook_url: "https://docs.example.com/runbooks/low-cache-hit-rate"
+
+      # Very low cache hit rate
+      - alert: VeryLowCacheHitRate
+        expr: |
+          cache_hit_rate < 0.3
+        for: 10m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Very low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 30%)"
+          runbook_url: "https://docs.example.com/runbooks/very-low-cache-hit-rate"
+
+      # High cache miss rate
+      - alert: HighCacheMissRate
+        expr: |
+          sum(rate(cache_operations_total{operation="miss"}[5m])) / sum(rate(cache_operations_total{operation=~"hit|miss"}[5m])) > 0.5
+        for: 15m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High cache miss rate"
+          description: "Cache miss rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+          runbook_url: "https://docs.example.com/runbooks/high-cache-miss-rate"
+
+      # Cache eviction rate high
+      - alert: HighCacheEvictionRate
+        expr: |
+          sum(rate(cache_operations_total{operation="evict"}[5m])) > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High cache eviction rate"
+          description: "{{ $value }} cache evictions per second (threshold: 100)"
+          runbook_url: "https://docs.example.com/runbooks/high-cache-eviction-rate"
+
+      # Redis memory usage high
+      - alert: RedisMemoryHigh
+        expr: |
+          redis_memory_bytes > 1000000000
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value | humanize }}B (threshold: 1GB)"
+          runbook_url: "https://docs.example.com/runbooks/redis-memory-high"

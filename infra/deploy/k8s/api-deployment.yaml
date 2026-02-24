@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-platform-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-platform-api
+  template:
+    metadata:
+      labels:
+        app: agent-platform-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/your-org/agent-platform-api:latest
+          ports:
+            - containerPort: 4000

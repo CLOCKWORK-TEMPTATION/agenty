@@ -1,0 +1,59 @@
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+# Parse JSON logs
+<filter **>
+  @type parser
+  key_name log
+  <parse>
+    @type json
+    time_key timestamp
+    time_format %Y-%m-%dT%H:%M:%S.%L%z
+  </parse>
+</filter>
+
+# Add common fields
+<filter **>
+  @type record_transformer
+  <record>
+    hostname "#{Socket.gethostname}"
+    cluster multi-agent-platform
+  </record>
+</filter>
+
+# Route to Elasticsearch
+<match **>
+  @type elasticsearch
+  host elasticsearch
+  port 9200
+  logstash_format true
+  logstash_prefix logs
+  include_tag_key true
+  tag_key @log_name
+  flush_interval 10s
+
+  <buffer>
+    @type file
+    path /fluentd/log/buffer
+    flush_mode interval
+    retry_type exponential_backoff
+    flush_thread_count 2
+    flush_interval 5s
+    retry_forever false
+    retry_max_interval 30
+    chunk_limit_size 2M
+    queue_limit_length 8
+    overflow_action block
+  </buffer>
+</match>
+
+# Also output to stdout in development
+<match **>
+  @type copy
+  <store>
+    @type stdout
+  </store>
+</match>

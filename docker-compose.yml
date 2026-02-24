@@ -1,0 +1,135 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agents-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: agents
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: agents-redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: agents-litellm
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-replace_me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-replace_me}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-replace_me}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-replace_me}
+    volumes:
+      - ./infra/litellm/config.yaml:/app/config.yaml:ro
+    ports:
+      - "4001:4000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  api:
+    image: node:20-alpine
+    container_name: agents-api
+    working_dir: /workspace
+    command:
+      [
+        "sh",
+        "-c",
+        "corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter @repo/api run dev"
+      ]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/agents}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      LITELLM_API_BASE: ${LITELLM_API_BASE:-http://litellm:4000}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-replace_me}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-replace_me}
+      NODE_ENV: development
+      API_PORT: 4000
+    volumes:
+      - ./:/workspace
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      litellm:
+        condition: service_healthy
+
+  web:
+    image: node:20-alpine
+    container_name: agents-web
+    working_dir: /workspace
+    command:
+      [
+        "sh",
+        "-c",
+        "corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter @repo/web run dev"
+      ]
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+      WEB_PORT: 3000
+    volumes:
+      - ./:/workspace
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_started
+
+  workers:
+    image: node:20-alpine
+    container_name: agents-workers
+    working_dir: /workspace
+    command:
+      [
+        "sh",
+        "-c",
+        "corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter @repo/workers run dev"
+      ]
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/agents}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
+      TEAM_EXECUTION_CONCURRENCY: ${TEAM_EXECUTION_CONCURRENCY:-3}
+      TOOL_EXECUTION_CONCURRENCY: ${TOOL_EXECUTION_CONCURRENCY:-10}
+      BATCH_PROCESSING_CONCURRENCY: ${BATCH_PROCESSING_CONCURRENCY:-5}
+      NOTIFICATION_CONCURRENCY: ${NOTIFICATION_CONCURRENCY:-10}
+      QUEUE_MAX_RETRIES: ${QUEUE_MAX_RETRIES:-3}
+      NODE_ENV: development
+    volumes:
+      - ./:/workspace
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

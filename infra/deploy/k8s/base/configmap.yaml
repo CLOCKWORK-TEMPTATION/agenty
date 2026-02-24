@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: multi-agent-platform
+  labels:
+    app.kubernetes.io/name: multi-agent-platform
+data:
+  # Database configuration
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "multi_agent_platform"
+  DB_POOL_MIN: "2"
+  DB_POOL_MAX: "10"
+  DB_SSL: "false"
+
+  # Redis configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_MAX_RETRIES: "3"
+
+  # LiteLLM configuration
+  LITELLM_HOST: "litellm-service"
+  LITELLM_PORT: "4000"
+  LITELLM_TIMEOUT: "300"
+
+  # Application configuration
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # Feature flags
+  FEATURE_MCP_TOOLS: "true"
+  FEATURE_SKILL_ENGINE: "true"
+  FEATURE_A2A_GATEWAY: "true"
+  FEATURE_OBSERVABILITY: "true"
+
+  # LangGraph configuration
+  LANGGRAPH_MAX_REVISION_LOOPS: "2"
+  LANGGRAPH_TIMEOUT: "600"
+  LANGGRAPH_ENABLE_CHECKPOINTS: "true"
+
+  # Model routing configuration
+  MODEL_SELECTION_QUALITY_WEIGHT: "0.65"
+  MODEL_SELECTION_RELIABILITY_WEIGHT: "0.20"
+  MODEL_SELECTION_CAPABILITY_WEIGHT: "0.10"
+  MODEL_SELECTION_LATENCY_WEIGHT: "0.05"
+
+  # Team constraints
+  TEAM_MIN_MODELS: "2"
+  TEAM_MAX_SPECIALISTS: "10"
+
+  # API configuration
+  API_PORT: "4000"
+  API_REQUEST_TIMEOUT: "30000"
+  API_BODY_LIMIT: "10mb"
+
+  # Web configuration
+  WEB_PORT: "3000"
+  NEXT_PUBLIC_API_URL: "http://api-service:4000"
+
+  # Worker configuration
+  WORKER_CONCURRENCY: "5"
+  WORKER_MAX_JOBS_PER_WORKER: "1"
+
+  # Observability
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "9090"
+  TRACING_ENABLED: "true"
+  TRACING_SAMPLE_RATE: "0.1"

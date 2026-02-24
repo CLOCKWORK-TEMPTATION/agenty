@@ -1,0 +1,19 @@
+id: coding-default
+name: Coding Team
+version: 1.0.0
+description: Planner + Implementer + Verifier
+domains:
+  - coding
+roles:
+  - id: planner
+    name: Planner
+    objective: Break task into actionable steps
+    requiredCapabilities: [tool-calling]
+  - id: implementer
+    name: Implementer
+    objective: Implement code changes
+    requiredCapabilities: [tool-calling]
+  - id: verifier
+    name: Verifier
+    objective: Validate quality and risks
+    requiredCapabilities: [tool-calling]

@@ -1,0 +1,74 @@
+# GCP GKE specific configurations
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ./
+
+# GCP-specific patches
+patches:
+  # Use GCP Persistent Disk for PostgreSQL
+  - target:
+      kind: PersistentVolumeClaim
+      name: postgres-pvc
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: standard-rwo
+
+  # Use GCP Persistent Disk for Redis
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-pvc
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: standard-rwo
+
+  # Add GCP Load Balancer annotations to Ingress
+  - target:
+      kind: Ingress
+      name: main-ingress
+    patch: |-
+      - op: add
+        path: /metadata/annotations/cloud.google.com~1neg
+        value: '{"ingress": true}'
+      - op: add
+        path: /metadata/annotations/cloud.google.com~1backend-config
+        value: backend-config
+      - op: add
+        path: /metadata/annotations/networking.gke.io~1managed-certificates
+        value: platform-cert
+
+  # Add node affinity for specific machine types
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity/nodeAffinity
+        value:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values:
+                      - default-pool
+                      - compute-pool
+
+  # Add Workload Identity annotations
+  - target:
+      kind: ServiceAccount
+      name: api-sa
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          iam.gke.io/gcp-service-account: multi-agent-platform-api@PROJECT_ID.iam.gserviceaccount.com
+
+resources:
+  - service-account.yaml
+  - gcp-backend-config.yaml
+  - gcp-managed-cert.yaml

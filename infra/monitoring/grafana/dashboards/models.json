@@ -1,0 +1,70 @@
+{
+  "title": "Models Dashboard",
+  "uid": "models",
+  "tags": ["models", "ai"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Model Usage Distribution",
+      "type": "piechart",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(model_requests_total[5m])) by (model)",
+          "legendFormat": "{{model}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Model Latency by Provider",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(model_latency_seconds_bucket[5m])) by (le, provider))",
+          "legendFormat": "{{provider}} P95"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Model Error Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum(rate(model_errors_total[5m])) by (model, error_type)",
+          "legendFormat": "{{model}} - {{error_type}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Model Diversity Compliance",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "targets": [
+        {
+          "expr": "count(count(model_requests_total) by (model))",
+          "legendFormat": "Unique Models Used"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 2, "color": "green" }
+            ]
+          },
+          "min": 0,
+          "max": 10
+        }
+      }
+    }
+  ]
+}

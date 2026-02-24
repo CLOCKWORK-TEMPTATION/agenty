@@ -1,0 +1,77 @@
+# AWS EKS specific configurations
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ./
+
+# AWS-specific patches
+patches:
+  # Use AWS EBS for PostgreSQL
+  - target:
+      kind: PersistentVolumeClaim
+      name: postgres-pvc
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: gp3
+
+  # Use AWS EBS for Redis
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-pvc
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: gp3
+
+  # Add AWS Load Balancer Controller annotations to Ingress
+  - target:
+      kind: Ingress
+      name: main-ingress
+    patch: |-
+      - op: add
+        path: /metadata/annotations/alb.ingress.kubernetes.io~1scheme
+        value: internet-facing
+      - op: add
+        path: /metadata/annotations/alb.ingress.kubernetes.io~1target-type
+        value: ip
+      - op: add
+        path: /metadata/annotations/alb.ingress.kubernetes.io~1ssl-policy
+        value: ELBSecurityPolicy-TLS-1-2-2017-01
+      - op: add
+        path: /metadata/annotations/alb.ingress.kubernetes.io~1certificate-arn
+        value: arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERTIFICATE_ID
+
+  # Add node affinity for specific instance types
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity/nodeAffinity
+        value:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node.kubernetes.io/instance-type
+                    operator: In
+                    values:
+                      - t3.large
+                      - t3.xlarge
+                      - m5.large
+                      - m5.xlarge
+
+  # Add AWS-specific service account annotations for IRSA
+  - target:
+      kind: ServiceAccount
+      name: api-sa
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/multi-agent-platform-api-role
+
+resources:
+  - service-account.yaml
